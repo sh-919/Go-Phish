@@ -301,6 +301,7 @@ function startAnalysisProgress() {
 function finishAnalysisProgress() {
   window.clearInterval(progressTimer);
   progressTimer = null;
+  analysisPage.classList.remove("is-loading");
   progressValue = 100;
   progressFill.style.width = "100%";
   progressFish.style.left = "51.5%";
@@ -337,7 +338,7 @@ phishButton.addEventListener("click", async () => {
   reelAnimation = orangeFish.animate(
     [
       { transform: "translate(0, 0)" },
-      { transform: "translate(14cqw, -29cqw) scale(0.65)" },
+      { transform: "translate(0, -29cqw) scale(0.65)" },
     ],
     { duration: reelDuration, easing: "cubic-bezier(0.28, 0.72, 0.38, 1)", fill: "forwards" },
   );
@@ -345,8 +346,8 @@ phishButton.addEventListener("click", async () => {
   audioModeButton.hidden = false;
   scene.classList.add("is-descended");
 
-  const buttonTop = window.scrollY + textModeButton.getBoundingClientRect().top;
-  const preferredScroll = buttonTop - window.innerHeight * 0.32;
+  const modeOptionsTop = window.scrollY + document.querySelector(".mode-options").getBoundingClientRect().top;
+  const preferredScroll = modeOptionsTop - window.innerHeight * 0.32;
   const minimumScroll = window.scrollY + window.innerHeight * 0.2;
   const maximumScroll = document.documentElement.scrollHeight - window.innerHeight;
   const scrollTarget = Math.min(maximumScroll, Math.max(0, preferredScroll, minimumScroll));
@@ -370,7 +371,7 @@ phishButton.addEventListener("click", async () => {
   orangeFish.classList.add("is-caught");
   reelAnimation.cancel();
   reelAnimation = null;
-  hook.style.transform = "translateY(-16cqw) rotate(1deg)";
+  hook.style.transform = "translateY(4cqw) rotate(1deg)";
   hook.style.animation = "none";
   phishButton.removeAttribute("aria-busy");
   status.textContent = "Fish caught. Choose text or audio input.";

@@ -101,6 +101,27 @@ function areReasonFragments(reasons) {
   );
 }
 
+async function requestGemini(endpoint, body) {
+  const retryableStatuses = new Set([429, 500, 502, 503, 504]);
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (response.ok || !retryableStatuses.has(response.status) || attempt === maxAttempts) {
+      return response;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** (attempt - 1)));
+  }
+
+  throw new Error("Gemini request failed after retries.");
+}
+
 async function analyzeMessage(type, content, image, live = false) {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/` +
@@ -136,13 +157,9 @@ ${content || "(Read the attached screenshot.)"}`;
     });
   }
 
-  const geminiResponse = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
-    }),
+  const geminiResponse = await requestGemini(endpoint, {
+    contents: [{ parts }],
+    generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
   });
 
   if (!geminiResponse.ok) {
