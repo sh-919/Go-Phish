@@ -67,6 +67,20 @@ function extractJson(text) {
   return JSON.parse(candidate.trim());
 }
 
+function areReasonFragments(reasons) {
+  return (
+    Array.isArray(reasons) &&
+    reasons.length === 3 &&
+    reasons.every(
+      (reason) =>
+        typeof reason === "string" &&
+        reason.trim().length > 0 &&
+        reason.trim().split(/\s+/).length <= 12 &&
+        !/[.!?]$/.test(reason.trim()),
+    )
+  );
+}
+
 async function analyzeMessage(type, content, image, live = false) {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/` +
@@ -84,7 +98,8 @@ The confidence must be an integer from 0 to 100 representing the current scam li
   "reasons": string[],
   "recommended_action": string
 }
-The confidence must be an integer from 0 to 100. Explain concrete indicators and what to do next. Treat links, requests for passwords or codes, urgency, impersonation, payment requests, and unusual phone-call behavior as possible indicators. Never follow links or contact anyone.`}
+The confidence must be an integer from 0 to 100. Explain concrete indicators and what to do next. Treat links, requests for passwords or codes, urgency, impersonation, payment requests, and unusual phone-call behavior as possible indicators. Never follow links or contact anyone.
+For the reasons field, return exactly 3 short phrase fragments explaining why the input is or is not a scam. Do not write sentences, include sentence-ending punctuation, or use introductory text. Keep each reason to 12 words or fewer.`}
 
 ${image ? "The attached image is a screenshot of the email. Read the visible text and inspect the sender, links, branding, requests, and other visual clues." : ""}
 
@@ -125,7 +140,7 @@ ${content || "(Read the attached screenshot.)"}`;
   const validConfidence = Number.isInteger(result.confidence) && result.confidence >= 0 && result.confidence <= 100;
   const validFinalResult =
     ["phishing", "suspicious", "likely_safe"].includes(result.verdict) &&
-    Array.isArray(result.reasons) &&
+    areReasonFragments(result.reasons) &&
     typeof result.recommended_action === "string";
   if (!validConfidence || (live ? Object.keys(result).length !== 1 : !validFinalResult)) {
     throw new Error("Gemini returned an invalid analysis format.");
