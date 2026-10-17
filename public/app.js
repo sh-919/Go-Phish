@@ -114,7 +114,7 @@ function scheduleLiveAnalysis() {
 function createRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    throw new Error("Live listening requires Chrome, Edge, or Opera GX speech recognition.");
+    throw new Error("Live listening speech recognition is unavailable.");
   }
 
   const instance = new SpeechRecognition();

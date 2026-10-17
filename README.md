@@ -8,7 +8,6 @@ For phone calls, select **Phone call**, click **Start listening**, and allow mic
 ## Phone-call feature constraints
 
 - This uses the browser's built-in Web Speech API for transcription; it does not record or upload raw audio.
-- Chrome, Edge, and Opera GX are Chromium browsers and support the required speech-recognition API. Firefox and Safari may not support it.
 - Microphone permission and an internet connection are required. Use `http://localhost:3000` during development.
 - Gemini receives a transcript snapshot every 10 seconds, not a true audio stream. Between Gemini requests, the displayed number is a local estimate based on recognized scam indicators so it can update without network delay. The displayed confidence is not a mathematically guaranteed probability.
 - Each update is a separate Gemini request. On the free tier, long calls can use quota quickly, so keep the 15-second interval and stop the listener when the call ends.
