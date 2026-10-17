@@ -1,0 +1,14 @@
+{
+  "name": "go-phish",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimal API for detecting phishing emails and phone-call transcripts.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go-Phish</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Go-Phish</h1>
+      <p class="intro">Check text or a screenshot of an email for possible phishing signs.</p>
+
+      <form id="analysis-form">
+        <fieldset>
+          <legend>What are you checking?</legend>
+          <label>
+            <input type="radio" name="type" value="email" checked />
+            Email
+          </label>
+          <label>
+            <input type="radio" name="type" value="phone" />
+            Phone call
+          </label>
+        </fieldset>
+
+        <section id="phone-controls" class="phone-controls" hidden>
+          <p class="help">Use Chrome, Edge, or Opera GX and allow microphone access.</p>
+          <button id="start-listening" type="button">Start listening</button>
+          <button id="stop-listening" type="button" disabled>Stop listening</button>
+          <p id="listening-status" role="status"></p>
+        </section>
+
+        <label id="content-label" for="content">Paste the message or transcript</label>
+        <textarea
+          id="content"
+          name="content"
+          rows="10"
+          placeholder="Paste the email or phone-call transcript here..."
+        ></textarea>
+
+        <section id="email-image-controls">
+          <label for="image">Or paste/upload an email screenshot</label>
+          <input id="image" type="file" accept="image/png,image/jpeg,image/webp" />
+          <p class="help">You can copy a screenshot and press Ctrl+V while this page is open.</p>
+          <img id="preview" class="preview" alt="Selected email screenshot preview" hidden />
+        </section>
+
+        <button type="submit">Check for phishing</button>
+      </form>
+
+      <p id="status" role="status"></p>
+      <section id="result" class="result" hidden aria-live="polite"></section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
