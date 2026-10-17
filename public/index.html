@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="ocean-stage">
+    <main id="page-container" class="ocean-stage page-container">
       <section id="surface" class="scene" aria-labelledby="page-title">
         <div class="scene-background" aria-hidden="true">
           <img class="art-sky" src="/assets/Intro%20View.png" alt="" />
@@ -16,7 +16,12 @@
           <img class="art-lighting" src="/assets/lighting.png" alt="" />
           <img class="art-clouds" src="/assets/clouds.png" alt="" />
           <img class="fish-sprite fish-left" src="/assets/images.png" alt="" />
-          <img class="fish-sprite fish-orange" src="/assets/images.png" alt="" />
+          <div id="catch-group" class="catch-group">
+            <div id="fish-orientation" class="fish-orientation">
+              <img id="orange-fish" class="fish-sprite fish-orange" src="/assets/images.png" alt="" />
+            </div>
+            <img id="metal-hook" class="art-hook" src="/assets/fish%20hook.png" alt="" />
+          </div>
           <img class="fish-sprite fish-right-high" src="/assets/images.png" alt="" />
           <img class="fish-sprite fish-right-low" src="/assets/images.png" alt="" />
           <img class="fish-sprite fish-left-low" src="/assets/images.png" alt="" />
@@ -24,7 +29,9 @@
           <img class="fish-sprite fish-center-bottom" src="/assets/images.png" alt="" />
           <img class="art-bubbles" src="/assets/bubbles.png" alt="" />
           <img class="art-seafloor" src="/assets/sea%20floor.png" alt="" />
-          <img class="art-hook" src="/assets/fish%20hook.png" alt="" />
+          <svg class="hook-tether" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <line id="hook-tether-line" />
+          </svg>
         </div>
         <button id="menu-button" class="menu-button" type="button" aria-expanded="false" aria-controls="menu-panel">
           <span>MENU</span>

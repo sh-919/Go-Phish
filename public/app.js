@@ -28,10 +28,13 @@ const menuPanel = document.querySelector("#menu-panel");
 const aboutLinks = document.querySelectorAll(".dropdown-about-link");
 const returnButtons = document.querySelectorAll(".return-to-surface");
 const oceanStage = document.querySelector(".ocean-stage");
+const pageContainer = document.querySelector("#page-container");
 const scene = document.querySelector(".scene");
 const phishButton = document.querySelector("#phish-button");
-const hook = document.querySelector(".art-hook");
-const orangeFish = document.querySelector(".fish-orange");
+const hook = document.querySelector("#metal-hook");
+const hookTetherLine = document.querySelector("#hook-tether-line");
+const fishOrientation = document.querySelector("#fish-orientation");
+const orangeFish = document.querySelector("#orange-fish");
 
 let selectedImage = null;
 let previewUrl = null;
@@ -50,7 +53,6 @@ let recognitionStarting = false;
 let latestLiveConfidence = null;
 let introSequenceStarted = false;
 let introSequenceToken = 0;
-let reelAnimation = null;
 let progressTimer = null;
 let progressValue = 0;
 
@@ -211,11 +213,6 @@ function stopPhoneListening() {
 
 function returnToSurface(updateHistory = true) {
   introSequenceToken += 1;
-  reelAnimation?.cancel();
-  reelAnimation = null;
-  for (const animation of orangeFish.getAnimations()) {
-    animation.cancel();
-  }
   closeMenus();
   aboutPage.hidden = true;
   analysisPage.hidden = true;
@@ -227,11 +224,15 @@ function returnToSurface(updateHistory = true) {
   status.textContent = "";
   scene.hidden = false;
   oceanStage.classList.remove("is-about");
-  scene.classList.remove("is-catching", "is-reeling", "is-descended");
-  orangeFish.classList.remove("is-caught");
+  pageContainer.classList.remove("is-submerged");
+  scene.classList.remove("is-catching", "is-snared", "is-pulling", "is-descended");
+  orangeFish.style.removeProperty("animation");
   orangeFish.style.removeProperty("transform");
+  fishOrientation.style.removeProperty("transform-origin");
   hook.style.removeProperty("transform");
   hook.style.removeProperty("animation");
+  hook.style.removeProperty("left");
+  hook.style.removeProperty("--hook-drop-distance");
   introSequenceStarted = false;
   phishButton.disabled = false;
   phishButton.removeAttribute("aria-busy");
@@ -244,6 +245,7 @@ function returnToSurface(updateHistory = true) {
     window.history.pushState(null, "", "#surface");
   }
   window.scrollTo({ top: 0, behavior: "instant" });
+  updateHookTether();
 }
 
 menuButton.addEventListener("click", () => toggleMenu(menuButton, menuPanel));
@@ -273,6 +275,23 @@ window.addEventListener("popstate", () => {
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function updateHookTether(targetX = null) {
+  const sceneRect = scene.getBoundingClientRect();
+  const buttonRect = phishButton.getBoundingClientRect();
+  const hookX =
+    targetX === null
+      ? ((hook.offsetLeft + hook.offsetWidth / 2) / scene.clientWidth) * 100
+      : ((targetX - sceneRect.left) / sceneRect.width) * 100;
+  const buttonX =
+    ((buttonRect.left + buttonRect.width / 2 - sceneRect.left) / sceneRect.width) * 100;
+  const buttonY = ((buttonRect.bottom - sceneRect.top) / sceneRect.height) * 100;
+
+  hookTetherLine.setAttribute("x1", String(buttonX));
+  hookTetherLine.setAttribute("y1", String(buttonY));
+  hookTetherLine.setAttribute("x2", String(hookX));
+  hookTetherLine.setAttribute("y2", String((hook.offsetTop / scene.clientHeight) * 100));
 }
 
 function startAnalysisProgress() {
@@ -324,8 +343,31 @@ phishButton.addEventListener("click", async () => {
   phishButton.disabled = true;
   phishButton.setAttribute("aria-busy", "true");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const catchDuration = reducedMotion ? 0 : 850;
-  const reelDuration = reducedMotion ? 0 : 900;
+  const catchDuration = reducedMotion ? 0 : 420;
+  const pullDuration = reducedMotion ? 0 : 1500;
+  const sceneRect = scene.getBoundingClientRect();
+  const fishTransform = getComputedStyle(orangeFish).transform;
+  const fishMatrix = new DOMMatrixReadOnly(
+    fishTransform === "none" ? "matrix(1, 0, 0, 1, 0, 0)" : fishTransform,
+  );
+  const fishTranslateX = fishMatrix.m41;
+  const fishTranslateY = fishMatrix.m42;
+  const fishPivotX = sceneRect.left + sceneRect.width * 0.38 + fishTranslateX;
+  const fishPivotY = sceneRect.top + sceneRect.height * 0.4445 + fishTranslateY;
+  const fishHeadOffsetX = sceneRect.width * (0.423 - 0.38);
+  const fishAngle = (-25 * Math.PI) / 180;
+  const headX = fishPivotX + fishHeadOffsetX * Math.cos(fishAngle);
+  const headY = fishPivotY + fishHeadOffsetX * Math.sin(fishAngle);
+  const hookDropDistance = headY - (sceneRect.top + sceneRect.height * 0.416);
+
+  orangeFish.style.animation = "none";
+  orangeFish.style.transform = fishTransform;
+  fishOrientation.style.transformOrigin =
+    `${((fishPivotX - sceneRect.left) / sceneRect.width) * 100}% ` +
+    `${((fishPivotY - sceneRect.top) / sceneRect.height) * 100}%`;
+  hook.style.left = `${((headX - sceneRect.left) / sceneRect.width) * 100 - 2.64}%`;
+  hook.style.setProperty("--hook-drop-distance", `${hookDropDistance}px`);
+  updateHookTether(headX);
 
   scene.classList.add("is-catching");
   await wait(catchDuration);
@@ -334,47 +376,24 @@ phishButton.addEventListener("click", async () => {
   }
 
   scene.classList.remove("is-catching");
-  scene.classList.add("is-reeling");
-  reelAnimation = orangeFish.animate(
-    [
-      { transform: "translate(0, 0)" },
-      { transform: "translate(0, -29cqw) scale(0.65)" },
-    ],
-    { duration: reelDuration, easing: "cubic-bezier(0.28, 0.72, 0.38, 1)", fill: "forwards" },
-  );
+  hook.style.transform = `translateY(${hookDropDistance}px)`;
+  scene.classList.add("is-snared", "is-descended", "is-pulling");
+  pageContainer.classList.add("is-submerged");
   textModeButton.hidden = false;
   audioModeButton.hidden = false;
-  scene.classList.add("is-descended");
 
-  const modeOptionsTop = window.scrollY + document.querySelector(".mode-options").getBoundingClientRect().top;
-  const preferredScroll = modeOptionsTop - window.innerHeight * 0.32;
-  const minimumScroll = window.scrollY + window.innerHeight * 0.2;
-  const maximumScroll = document.documentElement.scrollHeight - window.innerHeight;
-  const scrollTarget = Math.min(maximumScroll, Math.max(0, preferredScroll, minimumScroll));
-  window.scrollTo({
-    top: scrollTarget,
-    behavior: reducedMotion ? "instant" : "smooth",
-  });
-
-  try {
-    await Promise.all([reelAnimation.finished, wait(reelDuration)]);
-  } catch (error) {
-    if (sequenceToken !== introSequenceToken) {
-      return;
-    }
-    throw error;
-  }
+  await wait(pullDuration);
   if (sequenceToken !== introSequenceToken) {
     return;
   }
-  scene.classList.remove("is-reeling");
-  orangeFish.classList.add("is-caught");
-  reelAnimation.cancel();
-  reelAnimation = null;
-  hook.style.transform = "translateY(4cqw) rotate(1deg)";
-  hook.style.animation = "none";
   phishButton.removeAttribute("aria-busy");
   status.textContent = "Fish caught. Choose text or audio input.";
+});
+
+window.addEventListener("resize", () => {
+  if (!introSequenceStarted) {
+    updateHookTether();
+  }
 });
 
 function setListeningState(value) {
@@ -614,6 +633,7 @@ stopListening.addEventListener("click", async () => {
 });
 
 updatePhoneControls();
+updateHookTether();
 
 document.addEventListener("paste", (event) => {
   const image = [...event.clipboardData.items]

@@ -37,6 +37,14 @@ textarea:focus-visible {
   display: none !important;
 }
 
+.page-container {
+  transition: transform 1500ms ease-in-out;
+}
+
+.page-container.is-submerged {
+  transform: translateY(-100vh);
+}
+
 .ocean-stage {
   position: relative;
   display: block;
@@ -65,6 +73,21 @@ textarea:focus-visible {
   inset: 0;
   overflow: hidden;
   background: #a6e6eb;
+}
+
+.catch-group,
+.fish-orientation {
+  position: absolute;
+  inset: 0;
+}
+
+.catch-group {
+  z-index: 1;
+  transform-origin: center;
+}
+
+.fish-orientation {
+  transform-origin: 38% 44.45%;
 }
 
 .scene-background img {
@@ -131,7 +154,10 @@ textarea:focus-visible {
   --fish-left: 31%;
   --swim-duration: 4.2s;
   --swim-delay: -0.4s;
+  --swim-distance: 10cqw;
   z-index: 1;
+  animation-name: orange-fish-swim;
+  transform-origin: 38% 17.5%;
 }
 
 .fish-right-high {
@@ -208,7 +234,27 @@ textarea:focus-visible {
   width: 5.28%;
   height: 16.5%;
   transform-origin: 50% 0;
-  animation: hook-sway 4.6s ease-in-out infinite;
+}
+
+.hook-tether {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hook-tether line {
+  stroke: #171719;
+  stroke-width: max(1px, 0.16cqw);
+  vector-effect: non-scaling-stroke;
+}
+
+.scene.is-pulling .hook-tether {
+  opacity: 0;
+  transition: opacity 120ms linear;
 }
 
 .menu-button {
@@ -333,11 +379,6 @@ textarea:focus-visible {
   animation-delay: -2.3s;
 }
 
-.is-descended .fish-orange {
-  animation: none;
-  transform: translate(0, -29cqw) scale(0.65);
-}
-
 .scene.is-descended .mode-button img {
   animation: button-bob 3.6s ease-in-out infinite;
 }
@@ -395,24 +436,23 @@ textarea:focus-visible {
 }
 
 .scene.is-catching .art-hook {
-  animation: hook-drop 850ms ease-in-out forwards;
+  animation: hook-drop 420ms cubic-bezier(0.32, 0.75, 0.4, 1) forwards;
 }
 
-.scene.is-reeling .art-hook {
-  animation: hook-reel 900ms ease-in-out forwards;
+.scene.is-snared .fish-orientation {
+  transform: rotate(-25deg);
 }
 
-.scene.is-catching .fish-orange,
-.scene.is-reeling .fish-orange {
+.scene.is-catching .fish-orange {
   animation-play-state: paused;
 }
 
-.scene.is-reeling .fish-orange {
-  animation: fish-reel 900ms cubic-bezier(0.28, 0.72, 0.38, 1) forwards;
+.scene.is-pulling .catch-group {
+  animation: catch-pull 1500ms cubic-bezier(0.32, 0.68, 0.42, 1) forwards;
 }
 
 .scene.is-descended .art-hook {
-  animation: hook-sway 4.6s ease-in-out infinite;
+  animation: none;
 }
 
 .menu-button span {
@@ -1152,14 +1192,14 @@ textarea:focus-visible {
   }
 }
 
-@keyframes hook-sway {
+@keyframes orange-fish-swim {
   0%,
   100% {
-    transform: rotate(-3deg);
+    transform: translateX(0);
   }
 
   50% {
-    transform: rotate(3deg);
+    transform: translateX(var(--swim-distance));
   }
 }
 
@@ -1175,36 +1215,14 @@ textarea:focus-visible {
 }
 
 @keyframes hook-drop {
-  0% {
-    transform: translateY(0) rotate(0);
-  }
-
-  65% {
-    transform: translateY(3cqw) rotate(-4deg);
-  }
-
-  100% {
-    transform: translateY(2.2cqw) rotate(3deg);
-  }
-}
-
-@keyframes hook-reel {
-  0% {
-    transform: translateY(2.2cqw) rotate(3deg);
-  }
-
-  60% {
-    transform: translateY(3.5cqw) rotate(-2deg);
-  }
-
-  100% {
-    transform: translateY(4cqw) rotate(1deg);
-  }
-}
-
-@keyframes fish-reel {
   to {
-    transform: translate(0, -29cqw) scale(0.65);
+    transform: translateY(var(--hook-drop-distance));
+  }
+}
+
+@keyframes catch-pull {
+  to {
+    transform: translate(-30px, -80px);
   }
 }
 

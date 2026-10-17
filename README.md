@@ -1,6 +1,7 @@
 # Go-Phish
 A website that determines if an email, phone call, or email screenshot is a phishing scam.
 <img width="1232" height="622" alt="image" src="https://github.com/user-attachments/assets/7fce0cd5-8cd9-4cbd-812d-648566a23117" />
+On the intro screen, selecting **PHISH?** freezes the orange fish, drops the hook, and pulls them together by at most 80 pixels while the page slides down to the text and audio input choices.
 You can paste an email screenshot directly into the page with `Ctrl+V`, or choose a PNG, JPEG, or WebP file. The image is sent to Gemini as visual input so it can read the email text and inspect phishing indicators.
 
 For phone calls, select **Phone call**, click **Start listening**, and allow microphone access. The browser updates an immediate local scam-likelihood estimate as speech is recognized, while Gemini refines the number in the background every 10 seconds. During the call, only the number is shown. Click **Stop listening** to generate the final Gemini conclusion with reasons and recommended next steps.
