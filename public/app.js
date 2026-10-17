@@ -1,19 +1,40 @@
 const form = document.querySelector("#analysis-form");
 const button = form.querySelector('button[type="submit"]');
 const content = document.querySelector("#content");
-const contentLabel = document.querySelector("#content-label");
 const typeInputs = form.querySelectorAll('input[name="type"]');
 const imageInput = document.querySelector("#image");
 const preview = document.querySelector("#preview");
-const emailImageControls = document.querySelector("#email-image-controls");
 const status = document.querySelector("#status");
 const result = document.querySelector("#result");
 const phoneControls = document.querySelector("#phone-controls");
 const startListening = document.querySelector("#start-listening");
 const stopListening = document.querySelector("#stop-listening");
 const listeningStatus = document.querySelector("#listening-status");
+const analysisPage = document.querySelector("#analysis-page");
+const analysisArt = document.querySelector("#analysis-art");
+const analysisMenuButton = document.querySelector("#analysis-menu-button");
+const analysisMenuPanel = document.querySelector("#analysis-menu-panel");
+const aboutPage = document.querySelector("#about");
+const aboutMenuButton = document.querySelector("#about-menu-button");
+const aboutMenuPanel = document.querySelector("#about-menu-panel");
+const progress = document.querySelector("#analysis-progress");
+const progressBar = document.querySelector("#analysis-progressbar");
+const progressFill = document.querySelector("#analysis-progress-fill");
+const progressFish = document.querySelector(".progress-fish");
+const textModeButton = document.querySelector("#text-mode-button");
+const audioModeButton = document.querySelector("#audio-mode-button");
+const menuButton = document.querySelector("#menu-button");
+const menuPanel = document.querySelector("#menu-panel");
+const aboutLinks = document.querySelectorAll(".dropdown-about-link");
+const returnButtons = document.querySelectorAll(".return-to-surface");
+const oceanStage = document.querySelector(".ocean-stage");
+const scene = document.querySelector(".scene");
+const phishButton = document.querySelector("#phish-button");
+const hook = document.querySelector(".art-hook");
+const orangeFish = document.querySelector(".fish-orange");
 
 let selectedImage = null;
+let previewUrl = null;
 let recognition = null;
 let listening = false;
 let finalTranscript = "";
@@ -27,6 +48,11 @@ let restartTimer = null;
 let recognitionActive = false;
 let recognitionStarting = false;
 let latestLiveConfidence = null;
+let introSequenceStarted = false;
+let introSequenceToken = 0;
+let reelAnimation = null;
+let progressTimer = null;
+let progressValue = 0;
 
 const scamIndicators = [
   { pattern: /\b(password|passcode|verification code|security code|one[- ]time code|otp)\b/i, score: 30 },
@@ -54,8 +80,13 @@ function setImage(file) {
   }
 
   selectedImage = file;
-  preview.src = URL.createObjectURL(file);
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+  }
+  previewUrl = URL.createObjectURL(file);
+  preview.src = previewUrl;
   preview.hidden = false;
+  analysisPage.classList.add("has-image");
 }
 
 imageInput.addEventListener("change", () => {
@@ -64,6 +95,7 @@ imageInput.addEventListener("change", () => {
     status.textContent = "Screenshot ready.";
   } catch (error) {
     selectedImage = null;
+    analysisPage.classList.remove("has-image");
     imageInput.value = "";
     status.textContent = error.message;
   }
@@ -71,17 +103,278 @@ imageInput.addEventListener("change", () => {
 
 function updatePhoneControls() {
   const isPhone = form.elements.type.value === "phone";
+  const modeSelected = !analysisPage.hidden;
+  textModeButton.setAttribute("aria-pressed", String(modeSelected && !isPhone));
+  audioModeButton.setAttribute("aria-pressed", String(modeSelected && isPhone));
   phoneControls.hidden = !isPhone;
-  emailImageControls.hidden = isPhone;
   imageInput.disabled = isPhone;
+  analysisPage.classList.toggle("is-audio", isPhone);
+  content.setAttribute("aria-label", isPhone ? "Live phone-call transcript" : "Enter suspicious text");
+  const artwork = isPhone ? "/assets/Audio.png" : "/assets/Text.png";
+  if (analysisArt.getAttribute("src") !== artwork) {
+    analysisArt.src = artwork;
+  }
   if (isPhone) {
-    contentLabel.textContent = "Live transcript";
     content.placeholder = "Your live phone-call transcript will appear here...";
   } else {
-    contentLabel.textContent = "Paste the message or transcript";
     content.placeholder = "Paste the email or phone-call transcript here...";
   }
 }
+
+function activateMode(type, moveFocus) {
+  form.querySelector(`input[name="type"][value="${type}"]`).checked = true;
+  analysisPage.hidden = false;
+  analysisPage.classList.remove("is-loading");
+  progress.hidden = true;
+  button.hidden = false;
+  result.hidden = true;
+  status.textContent = "";
+  closeMenus();
+  analysisMenuButton.setAttribute("aria-expanded", "false");
+  analysisMenuPanel.hidden = true;
+  updatePhoneControls();
+  if (window.location.hash === "#about") {
+    showAboutPage(false);
+  }
+  analysisPage.scrollIntoView({
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+  });
+  if (moveFocus) {
+    if (type === "phone") {
+      startListening.focus();
+    } else {
+      content.focus();
+    }
+  }
+}
+
+textModeButton.addEventListener("click", (event) => activateMode("email", event.detail === 0));
+audioModeButton.addEventListener("click", (event) => activateMode("phone", event.detail === 0));
+typeInputs.forEach((input) =>
+  input.addEventListener("change", () => {
+    analysisPage.hidden = false;
+    updatePhoneControls();
+  }),
+);
+
+function closeMenus() {
+  for (const [trigger, panel] of [
+    [menuButton, menuPanel],
+    [analysisMenuButton, analysisMenuPanel],
+    [aboutMenuButton, aboutMenuPanel],
+  ]) {
+    trigger.setAttribute("aria-expanded", "false");
+    panel.hidden = true;
+  }
+}
+
+function toggleMenu(trigger, panel) {
+  const expanded = trigger.getAttribute("aria-expanded") === "true";
+  closeMenus();
+  trigger.setAttribute("aria-expanded", String(!expanded));
+  panel.hidden = expanded;
+}
+
+function showAboutPage(updateHistory = true) {
+  closeMenus();
+  stopPhoneListening();
+  scene.hidden = true;
+  analysisPage.hidden = true;
+  aboutPage.hidden = false;
+  oceanStage.classList.add("is-about");
+  if (updateHistory && window.location.hash !== "#about") {
+    window.history.pushState(null, "", "#about");
+  }
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function stopPhoneListening() {
+  const shouldStopRecognition = recognitionActive || recognitionStarting || listening;
+  listening = false;
+  recognitionStarting = false;
+  if (restartTimer) {
+    clearTimeout(restartTimer);
+    restartTimer = null;
+  }
+  if (analysisTimer) {
+    clearTimeout(analysisTimer);
+    analysisTimer = null;
+  }
+  if (shouldStopRecognition) {
+    recognition?.stop();
+  }
+  recognitionActive = false;
+  microphoneStream?.getTracks().forEach((track) => track.stop());
+  microphoneStream = null;
+  setListeningState(false);
+}
+
+function returnToSurface(updateHistory = true) {
+  introSequenceToken += 1;
+  reelAnimation?.cancel();
+  reelAnimation = null;
+  for (const animation of orangeFish.getAnimations()) {
+    animation.cancel();
+  }
+  closeMenus();
+  aboutPage.hidden = true;
+  analysisPage.hidden = true;
+  analysisPage.classList.remove("is-loading");
+  progress.hidden = true;
+  button.hidden = false;
+  result.hidden = true;
+  result.replaceChildren();
+  status.textContent = "";
+  scene.hidden = false;
+  oceanStage.classList.remove("is-about");
+  scene.classList.remove("is-catching", "is-reeling", "is-descended");
+  orangeFish.classList.remove("is-caught");
+  orangeFish.style.removeProperty("transform");
+  hook.style.removeProperty("transform");
+  hook.style.removeProperty("animation");
+  introSequenceStarted = false;
+  phishButton.disabled = false;
+  phishButton.removeAttribute("aria-busy");
+  textModeButton.hidden = true;
+  audioModeButton.hidden = true;
+  form.elements.type.value = "email";
+  stopPhoneListening();
+  updatePhoneControls();
+  if (updateHistory && window.location.hash !== "#surface") {
+    window.history.pushState(null, "", "#surface");
+  }
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+menuButton.addEventListener("click", () => toggleMenu(menuButton, menuPanel));
+analysisMenuButton.addEventListener("click", () => toggleMenu(analysisMenuButton, analysisMenuPanel));
+aboutMenuButton.addEventListener("click", () => toggleMenu(aboutMenuButton, aboutMenuPanel));
+aboutLinks.forEach((link) =>
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    showAboutPage();
+  }),
+);
+returnButtons.forEach((returnButton) =>
+  returnButton.addEventListener("click", () => returnToSurface()),
+);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMenus();
+  }
+});
+window.addEventListener("popstate", () => {
+  if (window.location.hash === "#about") {
+    showAboutPage(false);
+  } else {
+    returnToSurface(false);
+  }
+});
+
+function wait(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function startAnalysisProgress() {
+  window.clearInterval(progressTimer);
+  progressTimer = null;
+  progressValue = 4;
+  progressFill.style.width = `${progressValue}%`;
+  progressFish.style.left = "37%";
+  progressBar.setAttribute("aria-valuenow", String(progressValue));
+  progress.hidden = false;
+  button.hidden = true;
+  result.hidden = true;
+  analysisPage.classList.add("is-loading");
+  analysisArt.src =
+    form.elements.type.value === "phone" ? "/assets/Audio Deepen.png" : "/assets/Text Deepen.png";
+  status.textContent = "Analyzing...";
+
+  progressTimer = window.setInterval(() => {
+    progressValue = Math.min(90, progressValue + Math.max(0.3, (90 - progressValue) * 0.035));
+    progressFill.style.width = `${progressValue}%`;
+    progressFish.style.left = `${36.1 + progressValue * 0.17}%`;
+    progressBar.setAttribute("aria-valuenow", String(Math.round(progressValue)));
+  }, 180);
+}
+
+function finishAnalysisProgress() {
+  window.clearInterval(progressTimer);
+  progressTimer = null;
+  progressValue = 100;
+  progressFill.style.width = "100%";
+  progressFish.style.left = "51.5%";
+  progressBar.setAttribute("aria-valuenow", "100");
+  window.setTimeout(() => {
+    result.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
+  }, 100);
+}
+
+phishButton.addEventListener("click", async () => {
+  if (introSequenceStarted) {
+    return;
+  }
+
+  introSequenceStarted = true;
+  const sequenceToken = ++introSequenceToken;
+  phishButton.disabled = true;
+  phishButton.setAttribute("aria-busy", "true");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const catchDuration = reducedMotion ? 0 : 850;
+  const reelDuration = reducedMotion ? 0 : 900;
+
+  scene.classList.add("is-catching");
+  await wait(catchDuration);
+  if (sequenceToken !== introSequenceToken) {
+    return;
+  }
+
+  scene.classList.remove("is-catching");
+  scene.classList.add("is-reeling");
+  reelAnimation = orangeFish.animate(
+    [
+      { transform: "translate(0, 0)" },
+      { transform: "translate(14cqw, -29cqw) scale(0.65)" },
+    ],
+    { duration: reelDuration, easing: "cubic-bezier(0.28, 0.72, 0.38, 1)", fill: "forwards" },
+  );
+  textModeButton.hidden = false;
+  audioModeButton.hidden = false;
+  scene.classList.add("is-descended");
+
+  const buttonTop = window.scrollY + textModeButton.getBoundingClientRect().top;
+  const preferredScroll = buttonTop - window.innerHeight * 0.32;
+  const minimumScroll = window.scrollY + window.innerHeight * 0.2;
+  const maximumScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollTarget = Math.min(maximumScroll, Math.max(0, preferredScroll, minimumScroll));
+  window.scrollTo({
+    top: scrollTarget,
+    behavior: reducedMotion ? "instant" : "smooth",
+  });
+
+  try {
+    await Promise.all([reelAnimation.finished, wait(reelDuration)]);
+  } catch (error) {
+    if (sequenceToken !== introSequenceToken) {
+      return;
+    }
+    throw error;
+  }
+  if (sequenceToken !== introSequenceToken) {
+    return;
+  }
+  scene.classList.remove("is-reeling");
+  orangeFish.classList.add("is-caught");
+  reelAnimation.cancel();
+  reelAnimation = null;
+  hook.style.transform = "translateY(-16cqw) rotate(1deg)";
+  hook.style.animation = "none";
+  phishButton.removeAttribute("aria-busy");
+  status.textContent = "Fish caught. Choose text or audio input.";
+});
 
 function setListeningState(value) {
   listening = value;
@@ -179,20 +472,23 @@ function createRecognition() {
 }
 
 function showLiveConfidence(confidence, label = "Gemini update") {
-  result.className = "result live-result";
+  result.className = "analysis-result live-result";
   result.hidden = false;
   result.replaceChildren();
 
   const heading = document.createElement("h2");
+  heading.className = "visually-hidden";
   heading.textContent = "Current scam likelihood";
   result.append(heading);
 
   const score = document.createElement("p");
   score.className = "risk-score";
   score.textContent = confidence === null ? "--%" : `${confidence}%`;
+  score.setAttribute("aria-label", `Current scam likelihood: ${score.textContent}`);
   result.append(score);
 
   const note = document.createElement("p");
+  note.className = "visually-hidden";
   note.textContent =
     confidence === null
       ? "Listening for speech. The number will update as words are recognized."
@@ -215,6 +511,8 @@ async function analyzeCurrentTranscript(isLiveUpdate = false) {
   analysisInProgress = true;
   if (isLiveUpdate) {
     status.textContent = "Updating live risk analysis...";
+  } else {
+    startAnalysisProgress();
   }
   try {
     const response = await fetch("/analyze", {
@@ -234,11 +532,13 @@ async function analyzeCurrentTranscript(isLiveUpdate = false) {
     }
     status.textContent = isLiveUpdate ? "Live analysis updated." : "Analysis complete.";
   } catch (error) {
-    result.className = "result error";
-    result.textContent = error.message;
-    result.hidden = false;
+    showAnalysisError(error);
     status.textContent = "";
   } finally {
+    if (!isLiveUpdate) {
+      result.hidden = false;
+      finishAnalysisProgress();
+    }
     analysisInProgress = false;
     if (finalAnalysisRequested) {
       finalAnalysisRequested = false;
@@ -312,7 +612,6 @@ stopListening.addEventListener("click", async () => {
   await analyzeCurrentTranscript();
 });
 
-typeInputs.forEach((input) => input.addEventListener("change", updatePhoneControls));
 updatePhoneControls();
 
 document.addEventListener("paste", (event) => {
@@ -341,24 +640,34 @@ function fileAsBase64(file) {
 }
 
 function showResult(analysis) {
-  result.className = "result";
+  result.className = "analysis-result";
   result.hidden = false;
   result.replaceChildren();
 
   const heading = document.createElement("h2");
-  heading.textContent = analysis.verdict.replaceAll("_", " ");
+  heading.className = "visually-hidden";
+  heading.textContent = "Phishing analysis result";
   result.append(heading);
 
+  const verdict = document.createElement("p");
+  verdict.className = "result-value risk-value";
+  verdict.textContent = analysis.verdict.replaceAll("_", " ");
+  verdict.setAttribute("aria-label", `Risk: ${verdict.textContent}`);
+  result.append(verdict);
+
   const confidence = document.createElement("p");
-  confidence.className = "risk-score";
-  confidence.textContent = `Confidence: ${analysis.confidence}%`;
+  confidence.className = "result-value confidence-value";
+  confidence.textContent = `${analysis.confidence}%`;
+  confidence.setAttribute("aria-label", `Confidence: ${confidence.textContent}`);
   result.append(confidence);
 
   const reasonsHeading = document.createElement("strong");
+  reasonsHeading.className = "visually-hidden";
   reasonsHeading.textContent = "Reasons";
   result.append(reasonsHeading);
 
   const reasons = document.createElement("ul");
+  reasons.className = "analysis-reasons-list";
   for (const reason of analysis.reasons) {
     const item = document.createElement("li");
     item.textContent = reason;
@@ -367,25 +676,47 @@ function showResult(analysis) {
   result.append(reasons);
 
   const action = document.createElement("p");
+  action.className = "result-value action-value";
   const actionLabel = document.createElement("strong");
+  actionLabel.className = "visually-hidden";
   actionLabel.textContent = "Recommended action: ";
   action.append(actionLabel, document.createTextNode(analysis.recommended_action));
   result.append(action);
 }
 
+function showAnalysisError(error) {
+  result.className = "analysis-result error";
+  result.hidden = false;
+  result.replaceChildren();
+
+  const message = document.createElement("p");
+  message.className = "analysis-error-message";
+  message.textContent = error.message;
+  result.append(message);
+
+  const retry = document.createElement("button");
+  retry.className = "retry-analysis";
+  retry.type = "button";
+  retry.textContent = "Try again";
+  retry.addEventListener("click", () => form.requestSubmit(), { once: true });
+  result.append(retry);
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (form.elements.type.value === "phone") {
+    if (!content.value.trim()) {
+      status.textContent = "Start listening or enter a transcript before running the analysis.";
+      return;
+    }
     await analyzeCurrentTranscript();
     return;
   }
   if (!content.value.trim() && !selectedImage) {
-    status.textContent = "Paste text or select an email screenshot first.";
+    status.textContent = "Enter suspicious text or upload an email screenshot first.";
     return;
   }
-  button.disabled = true;
-  status.textContent = "Analyzing...";
-  result.hidden = true;
+  startAnalysisProgress();
 
   const type = form.elements.type.value;
 
@@ -405,11 +736,10 @@ form.addEventListener("submit", async (event) => {
     showResult(data.analysis);
     status.textContent = "Analysis complete.";
   } catch (error) {
-    result.className = "result error";
-    result.textContent = error.message;
-    result.hidden = false;
+    showAnalysisError(error);
     status.textContent = "";
   } finally {
-    button.disabled = false;
+    result.hidden = false;
+    finishAnalysisProgress();
   }
 });

@@ -25,6 +25,26 @@ const port = Number.parseInt(process.env.PORT ?? "3000", 10);
 const apiKey = process.env.GEMINI_API_KEY;
 const model = process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite";
 const publicDirectory = join(fileURLToPath(new URL(".", import.meta.url)), "public");
+const publicAssets = new Map(
+  [
+    "Intro View.png",
+    "ocean.png",
+    "lighting.png",
+    "clouds.png",
+    "images.png",
+    "bubbles.png",
+    "sea floor.png",
+    "fish hook.png",
+    "Button.png",
+    "Button_Option.png",
+    "Button_Option-1.png",
+    "Button_Option-2.png",
+    "Text.png",
+    "Text Deepen.png",
+    "Audio.png",
+    "Audio Deepen.png",
+  ].map((fileName) => [`/assets/${fileName}`, `assets/${fileName}`]),
+);
 
 function sendJson(response, status, body) {
   response.writeHead(status, {
@@ -185,6 +205,19 @@ const server = createServer(async (request, response) => {
   if (request.method === "GET" && request.url === "/app.js") {
     sendFile(response, "app.js", "text/javascript; charset=utf-8");
     return;
+  }
+
+  if (request.method === "GET") {
+    let assetPath;
+    try {
+      assetPath = publicAssets.get(decodeURIComponent(request.url));
+    } catch {
+      assetPath = null;
+    }
+    if (assetPath) {
+      sendFile(response, assetPath, "image/png");
+      return;
+    }
   }
 
   if (request.method !== "POST" || request.url !== "/analyze") {

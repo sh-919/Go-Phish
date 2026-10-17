@@ -3,54 +3,190 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#087c7e" />
     <title>Go-Phish</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="container">
-      <h1>Go-Phish</h1>
-      <p class="intro">Check text or a screenshot of an email for possible phishing signs.</p>
+    <main class="ocean-stage">
+      <section id="surface" class="scene" aria-labelledby="page-title">
+        <div class="scene-background" aria-hidden="true">
+          <img class="art-sky" src="/assets/Intro%20View.png" alt="" />
+          <img class="art-ocean" src="/assets/ocean.png" alt="" />
+          <img class="art-lighting" src="/assets/lighting.png" alt="" />
+          <img class="art-clouds" src="/assets/clouds.png" alt="" />
+          <img class="fish-sprite fish-left" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-orange" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-right-high" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-right-low" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-left-low" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-right-bottom" src="/assets/images.png" alt="" />
+          <img class="fish-sprite fish-center-bottom" src="/assets/images.png" alt="" />
+          <img class="art-bubbles" src="/assets/bubbles.png" alt="" />
+          <img class="art-seafloor" src="/assets/sea%20floor.png" alt="" />
+          <img class="art-hook" src="/assets/fish%20hook.png" alt="" />
+        </div>
+        <button id="menu-button" class="menu-button" type="button" aria-expanded="false" aria-controls="menu-panel">
+          <span>MENU</span>
+        </button>
+        <aside id="menu-panel" class="menu-panel" hidden>
+          <h2 class="dropdown-menu-title">MENU</h2>
+          <a class="dropdown-about-link" href="#about">About Us</a>
+          <button class="return-to-surface" type="button">Return to Surface</button>
+        </aside>
 
-      <form id="analysis-form">
-        <fieldset>
-          <legend>What are you checking?</legend>
-          <label>
-            <input type="radio" name="type" value="email" checked />
-            Email
-          </label>
-          <label>
-            <input type="radio" name="type" value="phone" />
-            Phone call
-          </label>
+        <h1 id="page-title" class="visually-hidden">PHISH?</h1>
+        <button id="phish-button" class="phish-button" type="button" aria-label="Phish? Catch the fish to continue">
+          <img class="title-art" src="/assets/Button.png" alt="" />
+        </button>
+
+        <fieldset class="mode-options" aria-label="Choose how to check for phishing">
+          <legend class="visually-hidden">Choose an input method</legend>
+          <button id="text-mode-button" class="mode-button text-mode-button" type="button" aria-pressed="false" hidden>
+            <img src="/assets/Button_Option-2.png" alt="" />
+            <span class="visually-hidden">Text input</span>
+          </button>
+          <img class="or-art" src="/assets/Button_Option.png" alt="OR" />
+          <button id="audio-mode-button" class="mode-button audio-mode-button" type="button" aria-pressed="false" hidden>
+            <img src="/assets/Button_Option-1.png" alt="" />
+            <span class="visually-hidden">Audio input</span>
+          </button>
         </fieldset>
+      </section>
 
-        <section id="phone-controls" class="phone-controls" hidden>
-          <p class="help">Supported browsers: Chrome and Edge on desktop and Android mobile devices.</p>
-          <button id="start-listening" type="button">Start listening</button>
-          <button id="stop-listening" type="button" disabled>Stop listening</button>
-          <p id="listening-status" role="status"></p>
-        </section>
+      <section id="analysis-page" class="analysis-page" hidden aria-label="Phishing analysis">
+        <img id="analysis-art" class="analysis-art" src="/assets/Text.png" alt="" />
+        <button
+          id="analysis-menu-button"
+          class="analysis-menu-hit"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="analysis-menu-panel"
+        ></button>
+        <aside id="analysis-menu-panel" class="analysis-menu-panel" hidden>
+          <h2 class="dropdown-menu-title">MENU</h2>
+          <a class="dropdown-about-link" href="#about">About Us</a>
+          <button id="close-panel-button" class="return-to-surface" type="button">Return to Surface</button>
+        </aside>
+        <form id="analysis-form" class="analysis-form">
+          <fieldset class="visually-hidden" hidden>
+            <legend>Analysis type</legend>
+            <label><input type="radio" name="type" value="email" checked /> Email text or screenshot</label>
+            <label><input type="radio" name="type" value="phone" /> Phone call audio</label>
+          </fieldset>
+          <label class="visually-hidden" for="content">Enter suspicious text</label>
+          <textarea
+            id="content"
+            name="content"
+            rows="10"
+            aria-label="Enter suspicious text"
+            placeholder=""
+          ></textarea>
+          <div id="phone-controls" class="analysis-phone-controls" hidden>
+            <button id="start-listening" class="phone-action start-action" type="button">Start Listening</button>
+            <button id="stop-listening" class="phone-action stop-action" type="button" disabled>Stop Listening</button>
+            <p class="phone-help visually-hidden">Chrome and Edge on desktop and Android. Microphone access required.</p>
+            <p id="listening-status" role="status" aria-live="polite"></p>
+          </div>
+          <label class="visually-hidden" for="image">Upload an email screenshot</label>
+          <input id="image" class="image-upload-hit" type="file" accept="image/png,image/jpeg,image/webp" />
+          <span class="mobile-upload-prompt" aria-hidden="true">Choose an email screenshot</span>
+          <img id="preview" class="analysis-preview" alt="Selected email screenshot preview" hidden />
+          <button class="analysis-submit" type="submit">RUN PHISH_NET</button>
+        </form>
+        <div id="analysis-progress" class="analysis-progress" hidden>
+          <span class="visually-hidden">Analyzing message</span>
+          <div
+            id="analysis-progressbar"
+            class="analysis-progressbar"
+            role="progressbar"
+            aria-label="Phishing analysis progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <span id="analysis-progress-fill"></span>
+          </div>
+          <span class="progress-fish" aria-hidden="true"></span>
+        </div>
+        <p id="status" class="analysis-status" role="status" aria-live="polite"></p>
+        <section id="result" class="analysis-result" hidden aria-live="polite"></section>
+      </section>
 
-        <label id="content-label" for="content">Paste the message or transcript</label>
-        <textarea
-          id="content"
-          name="content"
-          rows="10"
-          placeholder="Paste the email or phone-call transcript here..."
-        ></textarea>
-
-        <section id="email-image-controls">
-          <label for="image">Or paste/upload an email screenshot</label>
-          <input id="image" type="file" accept="image/png,image/jpeg,image/webp" />
-          <p class="help">You can copy a screenshot and press Ctrl+V while this page is open.</p>
-          <img id="preview" class="preview" alt="Selected email screenshot preview" hidden />
-        </section>
-
-        <button type="submit">Check for phishing</button>
-      </form>
-
-      <p id="status" role="status"></p>
-      <section id="result" class="result" hidden aria-live="polite"></section>
+      <section id="about" class="about-page" hidden aria-labelledby="about-title">
+        <img class="fish-sprite fish-left about-fish" src="/assets/images.png" alt="" />
+        <img class="fish-sprite fish-right-high about-fish" src="/assets/images.png" alt="" />
+        <img class="fish-sprite fish-right-low about-fish" src="/assets/images.png" alt="" />
+        <button
+          id="about-menu-button"
+          class="about-menu-hit"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          aria-controls="about-menu-panel"
+        ></button>
+        <aside id="about-menu-panel" class="about-menu-panel" hidden>
+          <h2 class="dropdown-menu-title">MENU</h2>
+          <a class="dropdown-about-link" href="#about">About Us</a>
+          <button class="return-to-surface" type="button">Return to Surface</button>
+        </aside>
+        <article class="about-card">
+          <h1 id="about-title">ABOUT US</h1>
+          <div class="about-copy" role="region" aria-label="About Go Phish" tabindex="0">
+            <p>
+              Text messages from unknown numbers, unsolicited calls, and emails that are too good to be true flood
+              the tranquility of our inboxes without permission. These are examples of cyberattacks classified as
+              phishing, which seek to extract your sensitive information while appearing as a trusted source.
+            </p>
+            <p>
+              In 2025, phishing was the #1 crime according to the FBI, with 191,561 complaints reported.
+              Unfortunately, this statistic cannot account for all attacks. Due to unawareness, many go undetected,
+              and the harsh consequences fall upon those most vulnerable.
+            </p>
+            <p>
+              We are taking a proactive stand against phishing attacks by developing this platform for users to
+              determine if a piece of media is a potential threat to their security before they consider clicking.
+              As this website is designed for the general public, we have prioritized a simple user interface and
+              have integrated it with an LLM that is capable of identifying common attack symptoms and providing
+              thorough recommendations to keep your data secure..
+            </p>
+            <p>
+              With the heightened risk of AI-generated attacks, it has become increasingly difficult to identify
+              who or what we can trust. We created Go Phish to be your digital lighthouse and guide you safely
+              across even the roughest seas of the internet.
+            </p>
+            <h2>Tech Stack:</h2>
+            <p>Figma - used to design an aquatic themed user interface</p>
+            <p>
+              Gemini API- the LLM processing files, text, and audio to determine and calculate a percentage of
+              phishing
+            </p>
+            <p>GoDaddy- currently hosting our domain and bringing Go Phish to you!</p>
+            <p>Vercel- connecting to our Github repo and assisting in website deployment</p>
+            <h2>Meet the Team:</h2>
+            <p>
+              Sara Hussain: Back End<br />
+              Linked IN:
+              <a href="https://www.linkedin.com/in/sara-husain" target="_blank" rel="noreferrer">
+                www.linkedin.com/in/sara-husain</a
+              ><br />
+              Github:
+              <a href="https://github.com/sh-919" target="_blank" rel="noreferrer">https://github.com/sh-919</a>
+            </p>
+            <p>Hannah Luikart: Front End<br />Linked IN:<br />Github:</p>
+            <p>Sneha Balaji: Front End<br />Linked IN:<br />Github:</p>
+            <p>
+              Pavitra Anand: Testing<br />
+              Linked IN:
+              <a href="https://www.linkedin.com/in/pavitra-anand" target="_blank" rel="noreferrer">
+                www.linkedin.com/in/pavitra-anand</a
+              ><br />
+              Github:
+            </p>
+          </div>
+        </article>
+      </section>
     </main>
     <script src="/app.js"></script>
   </body>
