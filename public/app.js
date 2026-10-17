@@ -346,7 +346,7 @@ function showResult(analysis) {
   result.replaceChildren();
 
   const heading = document.createElement("h2");
-  heading.textContent = analysis.verdict.replace("_", " ");
+  heading.textContent = analysis.verdict.replaceAll("_", " ");
   result.append(heading);
 
   const confidence = document.createElement("p");

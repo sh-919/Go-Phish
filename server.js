@@ -93,12 +93,12 @@ ${live ? `This is a live update during an ongoing phone call. Return only valid 
 }
 The confidence must be an integer from 0 to 100 representing the current scam likelihood based only on the transcript so far. Do not provide reasons, a verdict, or a recommended action yet.` : `This is the final analysis. Return only valid JSON with exactly these keys:
 {
-  "verdict": "phishing" | "suspicious" | "likely_safe",
+  "verdict": "very_likely_safe" | "likely_safe" | "suspicious" | "likely_phishing" | "very_likely_phishing" | "confirmed_phishing",
   "confidence": number,
   "reasons": string[],
   "recommended_action": string
 }
-The confidence must be an integer from 0 to 100. Explain concrete indicators and what to do next. Treat links, requests for passwords or codes, urgency, impersonation, payment requests, and unusual phone-call behavior as possible indicators. Never follow links or contact anyone.
+The confidence must be an integer from 0 to 100. Choose the verdict from six equal confidence bands: 0-16 very_likely_safe, 17-33 likely_safe, 34-50 suspicious, 51-67 likely_phishing, 68-84 very_likely_phishing, and 85-100 confirmed_phishing. Explain concrete indicators and what to do next. Treat links, requests for passwords or codes, urgency, impersonation, payment requests, and unusual phone-call behavior as possible indicators. Never follow links or contact anyone.
 For the reasons field, return exactly 3 short phrase fragments explaining why the input is or is not a scam. Do not write sentences, include sentence-ending punctuation, or use introductory text. Keep each reason to 12 words or fewer.`}
 
 ${image ? "The attached image is a screenshot of the email. Read the visible text and inspect the sender, links, branding, requests, and other visual clues." : ""}
@@ -139,7 +139,14 @@ ${content || "(Read the attached screenshot.)"}`;
   const result = extractJson(text);
   const validConfidence = Number.isInteger(result.confidence) && result.confidence >= 0 && result.confidence <= 100;
   const validFinalResult =
-    ["phishing", "suspicious", "likely_safe"].includes(result.verdict) &&
+    [
+      "very_likely_safe",
+      "likely_safe",
+      "suspicious",
+      "likely_phishing",
+      "very_likely_phishing",
+      "confirmed_phishing",
+    ].includes(result.verdict) &&
     areReasonFragments(result.reasons) &&
     typeof result.recommended_action === "string";
   if (!validConfidence || (live ? Object.keys(result).length !== 1 : !validFinalResult)) {
