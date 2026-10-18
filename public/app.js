@@ -289,20 +289,23 @@ function openModeChooser() {
   const hookTop = buttonRect.bottom - sceneRect.top;
   const targetHeadX = sceneRect.width / 2;
   const targetHeadY = swimmerRect.top - sceneRect.top + swimmerRect.height / 2;
-  const fishFacesRight = new DOMMatrixReadOnly(getComputedStyle(fishFacing).transform).a > 0;
+  const fishFacesRight = swimmerRect.left + swimmerRect.width / 2 < sceneRect.left + targetHeadX;
   const fishHeadOffset = fishFacesRight ? .86 : .14;
   const targetLeft = targetHeadX - swimmerRect.width * fishHeadOffset;
+  const startLeft = swimmerRect.left - sceneRect.left;
   const hookLeft = targetHeadX - hook.offsetWidth * .84;
   const hookScale = Math.max(1, (targetHeadY - hookTop) / hookHeight);
-  const fishFacingTransform = getComputedStyle(fishFacing).transform;
 
   orangeFish.style.animation = "none";
   orangeFish.style.transform = "none";
-  orangeFish.style.left = `${swimmerRect.left - sceneRect.left}px`;
-  orangeFish.style.transition = "left 450ms ease";
+  orangeFish.style.transition = "none";
+  orangeFish.style.left = `${startLeft}px`;
+  orangeFish.getBoundingClientRect();
+  orangeFish.style.transition = "left 600ms ease";
   fishFacing.style.animation = "none";
-  fishFacing.style.transform = fishFacingTransform;
+  fishFacing.style.transform = fishFacesRight ? "scaleX(1)" : "scaleX(-1)";
   fishOrientation.style.transformOrigin = `${fishHeadOffset * 100}% 50%`;
+  fishOrientation.style.setProperty("--fish-catch-tilt", fishFacesRight ? "-25deg" : "25deg");
   hook.style.top = `${hookTop}px`;
   hook.style.left = `${hookLeft}px`;
   hook.style.setProperty("--hook-target-scale", String(hookScale));

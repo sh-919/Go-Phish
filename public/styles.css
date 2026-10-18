@@ -1115,7 +1115,7 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   transition: transform 1500ms cubic-bezier(.32, .68, .42, 1);
 }
 .surface-page.is-snared .fish-orientation {
-  transform: rotate(-25deg);
+  transform: rotate(var(--fish-catch-tilt, -25deg));
   transition: transform 1500ms cubic-bezier(.32, .68, .42, 1);
 }
 .surface-page.is-snared .art-hook {
