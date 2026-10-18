@@ -27,6 +27,7 @@ const orangeFish = document.querySelector("#orange-fish-swimmer");
 const hook = document.querySelector("#metal-hook");
 const scene = document.querySelector(".surface-artboard");
 const fishOrientation = document.querySelector("#fish-orientation");
+const fishFacing = document.querySelector(".fish-facing");
 const modeButtons = document.querySelectorAll(".mode-button");
 const backButtons = document.querySelectorAll(".back-to-surface");
 const aboutDialog = document.querySelector("#about");
@@ -239,26 +240,27 @@ async function requestAnalysis({ type, text, image = null, live = false }) {
 }
 
 function showResult(analysis, mode = activeMode()) {
+  const renderReasons = (container, reasons) => {
+    const list = document.createElement("ul");
+    list.className = "deep-reasons-list";
+    for (const reason of reasons ?? []) {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      list.append(item);
+    }
+    container.replaceChildren(list);
+  };
+
   if (mode === "phone") {
     audioDeepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
     audioDeepConfidence.textContent = `${analysis.confidence}%`;
-    audioDeepReasons.replaceChildren();
-    for (const reason of analysis.reasons ?? []) {
-      const item = document.createElement("span");
-      item.textContent = reason;
-      audioDeepReasons.append(item);
-    }
+    renderReasons(audioDeepReasons, analysis.reasons);
     audioDeepAction.textContent = analysis.recommended_action;
     audioDeepScanStatus.textContent = "Audio analysis complete. Your report is ready.";
   } else {
     deepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
     deepConfidence.textContent = `${analysis.confidence}%`;
-    deepReasons.replaceChildren();
-    for (const reason of analysis.reasons ?? []) {
-      const item = document.createElement("span");
-      item.textContent = reason;
-      deepReasons.append(item);
-    }
+    renderReasons(deepReasons, analysis.reasons);
     deepAction.textContent = analysis.recommended_action;
   }
 }
@@ -293,15 +295,23 @@ function openModeChooser() {
   const hookTop = buttonRect.bottom - sceneRect.top;
   const targetHeadX = sceneRect.width / 2;
   const targetHeadY = swimmerRect.top - sceneRect.top + swimmerRect.height / 2;
-  const targetLeft = targetHeadX - swimmerRect.width * .86;
+  const fishFacesRight = swimmerRect.left + swimmerRect.width / 2 < sceneRect.left + targetHeadX;
+  const fishHeadOffset = fishFacesRight ? .86 : .14;
+  const targetLeft = targetHeadX - swimmerRect.width * fishHeadOffset;
+  const startLeft = swimmerRect.left - sceneRect.left;
   const hookLeft = targetHeadX - hook.offsetWidth * .84;
   const hookScale = Math.max(1, (targetHeadY - hookTop) / hookHeight);
 
   orangeFish.style.animation = "none";
   orangeFish.style.transform = "none";
-  orangeFish.style.left = `${swimmerRect.left - sceneRect.left}px`;
-  orangeFish.style.transition = "left 450ms ease";
-  fishOrientation.style.transformOrigin = "86% 50%";
+  orangeFish.style.transition = "none";
+  orangeFish.style.left = `${startLeft}px`;
+  orangeFish.getBoundingClientRect();
+  orangeFish.style.transition = "left 600ms ease";
+  fishFacing.style.animation = "none";
+  fishFacing.style.transform = fishFacesRight ? "scaleX(1)" : "scaleX(-1)";
+  fishOrientation.style.transformOrigin = `${fishHeadOffset * 100}% 50%`;
+  fishOrientation.style.setProperty("--fish-catch-tilt", fishFacesRight ? "-25deg" : "25deg");
   hook.style.top = `${hookTop}px`;
   hook.style.left = `${hookLeft}px`;
   hook.style.setProperty("--hook-target-scale", String(hookScale));
@@ -391,6 +401,7 @@ function returnToSurface() {
   audioPage.classList.remove("is-showing-results");
   orangeFish.removeAttribute("style");
   fishOrientation.removeAttribute("style");
+  fishFacing.removeAttribute("style");
   hook.removeAttribute("style");
   document.querySelectorAll(".mode-button, #phish-button").forEach((button) => {
     button.disabled = button.classList.contains("mode-button");
