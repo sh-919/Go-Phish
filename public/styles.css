@@ -171,9 +171,9 @@ textarea:focus-visible {
 }
 
 .fish-right-low {
-  --fish-top: 22%;
-  --fish-right: 13%;
-  --fish-bottom: 73%;
+  --fish-top: 20%;
+  --fish-right: 12%;
+  --fish-bottom: 72%;
   --fish-left: 70%;
   --swim-duration: 6.4s;
   --swim-delay: -1.8s;
@@ -181,8 +181,8 @@ textarea:focus-visible {
 }
 
 .fish-left-low {
-  --fish-top: 78%;
-  --fish-right: 82%;
+  --fish-top: 75%;
+  --fish-right: 81%;
   --fish-bottom: 17%;
   --fish-left: 7%;
   --swim-duration: 5.6s;
@@ -191,10 +191,10 @@ textarea:focus-visible {
 }
 
 .fish-right-bottom {
-  --fish-top: 86%;
-  --fish-right: 21%;
-  --fish-bottom: 8%;
-  --fish-left: 66%;
+  --fish-top: 83%;
+  --fish-right: 20%;
+  --fish-bottom: 7%;
+  --fish-left: 65%;
   --swim-duration: 6.8s;
   --swim-delay: -2s;
   --swim-distance: -7cqw;
@@ -441,10 +441,6 @@ textarea:focus-visible {
 
 .scene.is-snared .fish-orientation {
   transform: rotate(-25deg);
-}
-
-.scene.is-catching .fish-orange {
-  animation-play-state: paused;
 }
 
 .scene.is-pulling .catch-group {
@@ -1222,7 +1218,7 @@ textarea:focus-visible {
 
 @keyframes catch-pull {
   to {
-    transform: translate(-30px, -80px);
+    transform: translateY(-80px);
   }
 }
 

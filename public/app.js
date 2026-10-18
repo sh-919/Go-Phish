@@ -228,9 +228,11 @@ function returnToSurface(updateHistory = true) {
   scene.classList.remove("is-catching", "is-snared", "is-pulling", "is-descended");
   orangeFish.style.removeProperty("animation");
   orangeFish.style.removeProperty("transform");
+  fishOrientation.style.removeProperty("transform");
   fishOrientation.style.removeProperty("transform-origin");
   hook.style.removeProperty("transform");
   hook.style.removeProperty("animation");
+  hook.style.removeProperty("top");
   hook.style.removeProperty("left");
   hook.style.removeProperty("--hook-drop-distance");
   introSequenceStarted = false;
@@ -277,21 +279,52 @@ function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-function updateHookTether(targetX = null) {
+function updateHookTether() {
   const sceneRect = scene.getBoundingClientRect();
   const buttonRect = phishButton.getBoundingClientRect();
-  const hookX =
-    targetX === null
-      ? ((hook.offsetLeft + hook.offsetWidth / 2) / scene.clientWidth) * 100
-      : ((targetX - sceneRect.left) / sceneRect.width) * 100;
   const buttonX =
     ((buttonRect.left + buttonRect.width / 2 - sceneRect.left) / sceneRect.width) * 100;
+  const hookTop = ((buttonRect.bottom - sceneRect.top) / sceneRect.height) * 100;
   const buttonY = ((buttonRect.bottom - sceneRect.top) / sceneRect.height) * 100;
 
+  hook.style.top = `${hookTop}%`;
+  hook.style.left = `${buttonX - (hook.getBoundingClientRect().width / sceneRect.width) * 50}%`;
   hookTetherLine.setAttribute("x1", String(buttonX));
   hookTetherLine.setAttribute("y1", String(buttonY));
-  hookTetherLine.setAttribute("x2", String(hookX));
-  hookTetherLine.setAttribute("y2", String((hook.offsetTop / scene.clientHeight) * 100));
+  hookTetherLine.setAttribute("x2", String(buttonX));
+  hookTetherLine.setAttribute("y2", String(hookTop));
+}
+
+function waitForFishUnderHook(targetX, sequenceToken) {
+  const sceneRect = scene.getBoundingClientRect();
+  const fishHeadOffsetX = sceneRect.width * (0.423 - 0.38);
+  const fishAngle = (-25 * Math.PI) / 180;
+  const tolerance = Math.max(2, sceneRect.width * 0.004);
+
+  return new Promise((resolve) => {
+    const checkPosition = () => {
+      if (sequenceToken !== introSequenceToken) {
+        resolve(null);
+        return;
+      }
+
+      const fishTransform = getComputedStyle(orangeFish).transform;
+      const fishMatrix = new DOMMatrixReadOnly(
+        fishTransform === "none" ? "matrix(1, 0, 0, 1, 0, 0)" : fishTransform,
+      );
+      const fishPivotX = sceneRect.left + sceneRect.width * 0.38 + fishMatrix.m41;
+      const rotatedHeadX = fishPivotX + fishHeadOffsetX * Math.cos(fishAngle);
+
+      if (Math.abs(rotatedHeadX - targetX) <= tolerance) {
+        resolve({ fishTransform, rotatedHeadX });
+        return;
+      }
+
+      window.requestAnimationFrame(checkPosition);
+    };
+
+    window.requestAnimationFrame(checkPosition);
+  });
 }
 
 function startAnalysisProgress() {
@@ -345,8 +378,33 @@ phishButton.addEventListener("click", async () => {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const catchDuration = reducedMotion ? 0 : 420;
   const pullDuration = reducedMotion ? 0 : 1500;
+  updateHookTether();
+  const buttonRect = phishButton.getBoundingClientRect();
+  const hookTargetX = buttonRect.left + buttonRect.width / 2;
+  let fishContact;
+
+  if (reducedMotion) {
+    const sceneRect = scene.getBoundingClientRect();
+    const fishHeadOffsetX = sceneRect.width * (0.423 - 0.38);
+    const fishAngle = (-25 * Math.PI) / 180;
+    const targetTranslateX =
+      hookTargetX -
+      sceneRect.left -
+      sceneRect.width * 0.38 -
+      fishHeadOffsetX * Math.cos(fishAngle);
+    fishContact = {
+      fishTransform: `matrix(1, 0, 0, 1, ${targetTranslateX}, 0)`,
+      rotatedHeadX: hookTargetX,
+    };
+  } else {
+    fishContact = await waitForFishUnderHook(hookTargetX, sequenceToken);
+  }
+  if (sequenceToken !== introSequenceToken || !fishContact) {
+    return;
+  }
+
   const sceneRect = scene.getBoundingClientRect();
-  const fishTransform = getComputedStyle(orangeFish).transform;
+  const fishTransform = fishContact.fishTransform;
   const fishMatrix = new DOMMatrixReadOnly(
     fishTransform === "none" ? "matrix(1, 0, 0, 1, 0, 0)" : fishTransform,
   );
@@ -356,18 +414,17 @@ phishButton.addEventListener("click", async () => {
   const fishPivotY = sceneRect.top + sceneRect.height * 0.4445 + fishTranslateY;
   const fishHeadOffsetX = sceneRect.width * (0.423 - 0.38);
   const fishAngle = (-25 * Math.PI) / 180;
-  const headX = fishPivotX + fishHeadOffsetX * Math.cos(fishAngle);
   const headY = fishPivotY + fishHeadOffsetX * Math.sin(fishAngle);
-  const hookDropDistance = headY - (sceneRect.top + sceneRect.height * 0.416);
+  const hookDropDistance = headY - hook.getBoundingClientRect().bottom;
 
   orangeFish.style.animation = "none";
   orangeFish.style.transform = fishTransform;
   fishOrientation.style.transformOrigin =
     `${((fishPivotX - sceneRect.left) / sceneRect.width) * 100}% ` +
     `${((fishPivotY - sceneRect.top) / sceneRect.height) * 100}%`;
-  hook.style.left = `${((headX - sceneRect.left) / sceneRect.width) * 100 - 2.64}%`;
+  fishOrientation.style.transform =
+    `translateX(${hookTargetX - fishContact.rotatedHeadX}px) rotate(-25deg)`;
   hook.style.setProperty("--hook-drop-distance", `${hookDropDistance}px`);
-  updateHookTether(headX);
 
   scene.classList.add("is-catching");
   await wait(catchDuration);
