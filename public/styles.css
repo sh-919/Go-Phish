@@ -1682,16 +1682,19 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 }
 
 .text-page .terminal-frame {
-  top: 10vh;
-  height: 40vh;
+  top: 9vh;
+  left: 11%;
+  width: 78%;
+  height: 72vh;
+  padding-top: clamp(64px, 8vh, 86px);
 }
 
 .text-page .run-area {
-  top: 51vh;
+  top: 84vh;
 }
 
 .text-page .analysis-status {
-  top: 61vh;
+  top: 93vh;
 }
 
 .terminal-page {
@@ -1784,6 +1787,19 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 }
 
 @media (max-width: 700px) {
+  .text-page .terminal-frame {
+    top: 9vh;
+    height: 72vh;
+  }
+
+  .text-page .run-area {
+    top: 84vh;
+  }
+
+  .text-page .analysis-status {
+    top: 93vh;
+  }
+
   .text-frame {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
