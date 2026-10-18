@@ -967,6 +967,12 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   transform-origin: 86% 50%;
 }
 
+.fish-facing {
+  position: absolute;
+  inset: 0;
+  animation: orange-fish-turn 16s steps(1, end) infinite;
+}
+
 .fish-sprite {
   position: absolute;
   top: 34.8%;
@@ -1135,7 +1141,12 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 
 @keyframes orange-fish-swim {
   from { transform: translateX(0); }
-  to { transform: translateX(70cqw); }
+  to { transform: translateX(calc(100cqw - 100% - 16cqw)); }
+}
+
+@keyframes orange-fish-turn {
+  0%, 49.99% { transform: scaleX(1); }
+  50%, 100% { transform: scaleX(-1); }
 }
 
 @keyframes wave-drift {
