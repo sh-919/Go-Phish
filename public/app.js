@@ -233,26 +233,27 @@ async function requestAnalysis({ type, text, image = null, live = false }) {
 }
 
 function showResult(analysis, mode = activeMode()) {
+  const renderReasons = (container, reasons) => {
+    const list = document.createElement("ul");
+    list.className = "deep-reasons-list";
+    for (const reason of reasons ?? []) {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      list.append(item);
+    }
+    container.replaceChildren(list);
+  };
+
   if (mode === "phone") {
     audioDeepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
     audioDeepConfidence.textContent = `${analysis.confidence}%`;
-    audioDeepReasons.replaceChildren();
-    for (const reason of analysis.reasons ?? []) {
-      const item = document.createElement("span");
-      item.textContent = reason;
-      audioDeepReasons.append(item);
-    }
+    renderReasons(audioDeepReasons, analysis.reasons);
     audioDeepAction.textContent = analysis.recommended_action;
     audioDeepScanStatus.textContent = "Audio analysis complete. Your report is ready.";
   } else {
     deepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
     deepConfidence.textContent = `${analysis.confidence}%`;
-    deepReasons.replaceChildren();
-    for (const reason of analysis.reasons ?? []) {
-      const item = document.createElement("span");
-      item.textContent = reason;
-      deepReasons.append(item);
-    }
+    renderReasons(deepReasons, analysis.reasons);
     deepAction.textContent = analysis.recommended_action;
   }
 }

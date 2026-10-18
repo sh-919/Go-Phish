@@ -1642,6 +1642,15 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   gap: 4px;
 }
 
+.deep-reasons-list {
+  margin: 0;
+  padding-left: 1.25em;
+}
+
+.deep-reasons-list li {
+  padding: 2px 0;
+}
+
 .deep-scan-status {
   max-width: 100%;
   margin: 0;
