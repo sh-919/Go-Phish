@@ -1640,18 +1640,22 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   grid-column: 1 / -1;
 }
 
-#deep-reasons {
+#deep-reasons,
+#audio-deep-reasons {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .deep-reasons-list {
+  display: block;
+  width: 100%;
   margin: 0;
   padding-left: 1.25em;
 }
 
 .deep-reasons-list li {
+  display: list-item;
   padding: 2px 0;
 }
 
