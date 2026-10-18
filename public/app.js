@@ -13,6 +13,11 @@ const progress = document.querySelector("#analysis-progress");
 const progressBar = document.querySelector("#analysis-progressbar");
 const progressFill = document.querySelector("#analysis-progress-fill");
 const progressFish = document.querySelector(".progress-fish");
+const audioSubmitButton = document.querySelector("#audio-submit");
+const audioProgress = document.querySelector("#audio-analysis-progress");
+const audioProgressBar = document.querySelector("#audio-analysis-progressbar");
+const audioProgressFill = document.querySelector("#audio-analysis-progress-fill");
+const audioProgressFish = audioProgress.querySelector(".progress-fish");
 const microphone = document.querySelector("#microphone-trigger");
 const startListening = document.querySelector("#start-listening");
 const stopListeningButton = document.querySelector("#stop-listening");
@@ -51,6 +56,7 @@ let finalTranscript = "";
 let interimTranscript = "";
 let microphoneStream = null;
 let transitionRunning = false;
+let audioAnalysisRunning = false;
 
 if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
 document.documentElement.style.scrollBehavior = "auto";
@@ -179,7 +185,7 @@ function animateWindowScroll(targetY, duration) {
   });
 }
 
-function animateProgress() {
+function animateProgress({ submitButton, progress, progressBar, progressFill, progressFish }) {
   clearInterval(progressTimer);
   progressValue = 4;
   progress.hidden = false;
@@ -195,7 +201,7 @@ function animateProgress() {
   }, 160);
 }
 
-function stopProgress() {
+function stopProgress(progressBar, progressFill) {
   clearInterval(progressTimer);
   progressTimer = null;
   progressValue = 100;
@@ -557,22 +563,46 @@ function stopListening() {
 }
 
 async function analyzePhoneTranscript() {
+  if (audioAnalysisRunning) return;
   if (!audioContent.value.trim()) {
     audioStatus.textContent = "Start listening or enter a transcript before running the analysis.";
     return;
   }
-  audioStatus.textContent = "Preparing the final Gemini report...";
+  audioAnalysisRunning = true;
   audioDeepScanStatus.textContent = "The analysis is running. Your report will appear here.";
   audioDeepRisk.textContent = "Analyzing";
   audioDeepConfidence.textContent = "—";
   audioDeepReasons.textContent = "The results will appear here when the scan is complete.";
   audioDeepAction.textContent = "—";
+  audioStatus.textContent = "Preparing the final Gemini report...";
+  animateProgress({
+    submitButton: audioSubmitButton,
+    progress: audioProgress,
+    progressBar: audioProgressBar,
+    progressFill: audioProgressFill,
+    progressFish: audioProgressFish,
+  });
+  const minimumDuration = wait(2000);
+  let analysis;
+  let analysisError;
   try {
-    showResult(await requestAnalysis({ type: "phone", text: audioContent.value }));
+    try {
+      analysis = await requestAnalysis({ type: "phone", text: audioContent.value });
+    } catch (error) {
+      analysisError = error;
+    }
+    await minimumDuration;
+    if (analysisError) throw analysisError;
+    showResult(analysis);
     audioStatus.textContent = "Analysis complete. Your report is ready.";
   } catch (error) {
     showAnalysisError(error);
     audioStatus.textContent = `Analysis could not be completed: ${error.message}`;
+  } finally {
+    stopProgress(audioProgressBar, audioProgressFill);
+    audioProgress.hidden = true;
+    audioSubmitButton.hidden = false;
+    audioAnalysisRunning = false;
   }
   audioPage.classList.add("is-showing-results");
   scrollToElement(
@@ -609,7 +639,13 @@ form.addEventListener("submit", async (event) => {
   deepConfidence.textContent = "—";
   deepReasons.textContent = "The results will appear here when the scan is complete.";
   deepAction.textContent = "—";
-  animateProgress();
+  animateProgress({
+    submitButton,
+    progress,
+    progressBar,
+    progressFill,
+    progressFish,
+  });
   const minimumDuration = wait(2000);
   let analysis;
   let analysisError;
@@ -633,7 +669,7 @@ form.addEventListener("submit", async (event) => {
     progressStatus.textContent = `Analysis could not be completed: ${error.message}`;
     status.textContent = error.message;
   } finally {
-    stopProgress();
+    stopProgress(progressBar, progressFill);
     progress.hidden = true;
     submitButton.hidden = false;
     textPage.classList.add("is-showing-results");

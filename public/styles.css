@@ -1695,6 +1695,14 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   top: 93vh;
 }
 
+.audio-page .run-area {
+  top: 84vh;
+}
+
+.audio-page .analysis-status {
+  top: 93vh;
+}
+
 .terminal-page {
   transition: transform 380ms ease, opacity 380ms ease;
   transform-origin: 50% 50%;
@@ -1795,6 +1803,14 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   }
 
   .text-page .analysis-status {
+    top: 93vh;
+  }
+
+  .audio-page .run-area {
+    top: 84vh;
+  }
+
+  .audio-page .analysis-status {
     top: 93vh;
   }
 

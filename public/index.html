@@ -190,6 +190,26 @@
               <p class="phone-help visually-hidden">Chrome and Edge on desktop and Android. Microphone access required.</p>
             </div>
           </div>
+          <div class="run-area">
+            <button id="audio-submit" class="analysis-submit" type="submit">RUN PHISH_NET</button>
+            <div id="audio-analysis-progress" class="analysis-progress" hidden aria-live="polite">
+              <strong>ANALYZING...</strong>
+              <div
+                id="audio-analysis-progressbar"
+                class="analysis-progressbar"
+                role="progressbar"
+                aria-label="Audio phishing analysis progress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <span id="audio-analysis-progress-fill"></span>
+                <span class="progress-fish" aria-hidden="true">
+                  <img src="/assets/images.png" alt="" />
+                </span>
+              </div>
+            </div>
+          </div>
           <p id="audio-status" class="analysis-status" role="status" aria-live="polite"></p>
           <section id="audio-deepen-bottom" class="text-deepen-bottom" aria-labelledby="audio-deepen-title">
             <h2 id="audio-deepen-title">RESULTS</h2>
