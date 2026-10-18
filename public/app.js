@@ -150,6 +150,30 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+function animateWindowScroll(targetY, duration) {
+  const startY = window.scrollY;
+  const startTime = performance.now();
+
+  return new Promise((resolve) => {
+    const animate = (timestamp) => {
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = progress * progress * (3 - 2 * progress);
+      window.scrollTo({
+        top: startY + (targetY - startY) * easedProgress,
+        behavior: "instant",
+      });
+
+      if (progress < 1) {
+        window.requestAnimationFrame(animate);
+      } else {
+        resolve();
+      }
+    };
+
+    window.requestAnimationFrame(animate);
+  });
+}
+
 function animateProgress() {
   clearInterval(progressTimer);
   progressValue = 4;
@@ -316,6 +340,20 @@ function openModeChooser() {
     orangeFish.style.left = `${targetLeft}px`;
     await wait(700);
     surface.classList.add("is-snared");
+    const textButtonRect = document.querySelector("#text-mode-button").getBoundingClientRect();
+    const choiceCenter = textButtonRect.top + window.scrollY + textButtonRect.height / 2;
+    const surfaceBottom =
+      surface.getBoundingClientRect().top + window.scrollY
+        + surface.getBoundingClientRect().height - window.innerHeight;
+    const landingBottom = Math.max(
+      0,
+      Math.min(
+        choiceCenter - window.innerHeight / 2,
+        surfaceBottom,
+        document.documentElement.scrollHeight - window.innerHeight,
+      ),
+    );
+    const landingScroll = animateWindowScroll(landingBottom, 1500);
     await wait(500);
     surface.classList.add("is-choosing");
     const options = document.querySelector(".mode-options");
@@ -324,14 +362,8 @@ function openModeChooser() {
     phishButton.removeAttribute("aria-busy");
     phishButton.setAttribute("aria-expanded", "true");
     phishButton.setAttribute("aria-label", "Choose text or audio");
-
-    const landingBottom = surface.getBoundingClientRect().top + window.scrollY
-      + surface.getBoundingClientRect().height - window.innerHeight;
-    window.scrollTo({
-      top: landingBottom,
-      behavior: "smooth",
-    });
     await wait(900);
+    await landingScroll;
     transitionRunning = false;
   }, 0);
 }
