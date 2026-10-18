@@ -636,7 +636,15 @@ button {
   background: #004b61;
 }
 
-#analysis-progress-fill { display: block; width: 4%; height: 100%; border-radius: inherit; background: var(--gold); transition: width 160ms linear; }
+#analysis-progress-fill,
+#audio-analysis-progress-fill {
+  display: block;
+  width: 4%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+  transition: width 160ms linear;
+}
 .progress-fish {
   position: absolute;
   top: 50%;
