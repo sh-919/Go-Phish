@@ -948,7 +948,7 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 .art-sky { inset: 0 0 auto; width: 100%; height: 66.26%; }
 .art-ocean { top: 15.15%; left: 0; width: 100%; height: 85.99%; animation: wave-drift 4.6s ease-in-out infinite; }
 .art-lighting { top: 15.15%; left: 0; width: 100%; height: 88.48%; }
-.art-clouds { top: 3%; left: 0; width: 100%; height: 25.49%; }
+.art-clouds { top: 0%; left: 0; width: 100%; height: 25.49%; }
 
 .catch-group,
 .fish-orientation {
