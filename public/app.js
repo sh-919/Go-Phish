@@ -8,7 +8,6 @@ const imageInput = document.querySelector("#image");
 const preview = document.querySelector("#preview");
 const status = document.querySelector("#status");
 const audioStatus = document.querySelector("#audio-status");
-const result = document.querySelector("#result");
 const submitButton = document.querySelector("#text-submit");
 const progress = document.querySelector("#analysis-progress");
 const progressBar = document.querySelector("#analysis-progressbar");
@@ -33,6 +32,12 @@ const deepRisk = document.querySelector("#deep-risk");
 const deepConfidence = document.querySelector("#deep-confidence");
 const deepReasons = document.querySelector("#deep-reasons");
 const deepAction = document.querySelector("#deep-action");
+const audioDeepRisk = document.querySelector("#audio-deep-risk");
+const audioDeepConfidence = document.querySelector("#audio-deep-confidence");
+const audioDeepReasons = document.querySelector("#audio-deep-reasons");
+const audioDeepAction = document.querySelector("#audio-deep-action");
+const audioDeepScanStatus = document.querySelector("#audio-deep-scan-status");
+const audioResults = document.querySelector("#audio-deepen-bottom");
 
 let selectedImage = null;
 let previewUrl = null;
@@ -228,83 +233,43 @@ async function requestAnalysis({ type, text, image = null, live = false }) {
 }
 
 function showResult(analysis, mode = activeMode()) {
-  result.className = "analysis-result";
-  result.replaceChildren();
-  result.hidden = mode !== "phone";
-
-  const heading = document.createElement("h2");
-  heading.className = "audio-report-heading";
-  heading.textContent = "GEMINI ANALYSIS REPORT";
-  result.append(heading);
-
-  const verdict = document.createElement("p");
-  verdict.className = "result-value risk-value";
-  verdict.textContent = String(analysis.verdict).replaceAll("_", " ");
-  verdict.setAttribute("aria-label", `Risk: ${verdict.textContent}`);
-  result.append(verdict);
-
-  const confidence = document.createElement("p");
-  confidence.className = "result-value confidence-value";
-  confidence.textContent = `${analysis.confidence}%`;
-  confidence.setAttribute("aria-label", `Confidence: ${confidence.textContent}`);
-  result.append(confidence);
-
-  const reasons = document.createElement("ul");
-  reasons.className = "analysis-reasons-list";
-  for (const reason of analysis.reasons ?? []) {
-    const item = document.createElement("li");
-    item.textContent = reason;
-    reasons.append(item);
+  if (mode === "phone") {
+    audioDeepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
+    audioDeepConfidence.textContent = `${analysis.confidence}%`;
+    audioDeepReasons.replaceChildren();
+    for (const reason of analysis.reasons ?? []) {
+      const item = document.createElement("span");
+      item.textContent = reason;
+      audioDeepReasons.append(item);
+    }
+    audioDeepAction.textContent = analysis.recommended_action;
+    audioDeepScanStatus.textContent = "Audio analysis complete. Your report is ready.";
+  } else {
+    deepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
+    deepConfidence.textContent = `${analysis.confidence}%`;
+    deepReasons.replaceChildren();
+    for (const reason of analysis.reasons ?? []) {
+      const item = document.createElement("span");
+      item.textContent = reason;
+      deepReasons.append(item);
+    }
+    deepAction.textContent = analysis.recommended_action;
   }
-  result.append(reasons);
-
-  const action = document.createElement("p");
-  action.className = "result-value action-value";
-  action.textContent = `Recommended action: ${analysis.recommended_action}`;
-  result.append(action);
-
-  deepRisk.textContent = String(analysis.verdict).replaceAll("_", " ");
-  deepConfidence.textContent = `${analysis.confidence}%`;
-  deepReasons.replaceChildren();
-  for (const reason of analysis.reasons ?? []) {
-    const item = document.createElement("span");
-    item.textContent = reason;
-    deepReasons.append(item);
-  }
-  deepAction.textContent = analysis.recommended_action;
 }
 
 function showAnalysisError(error, mode = activeMode()) {
-  result.className = "analysis-result error";
-  result.replaceChildren();
-  result.hidden = mode !== "phone";
-  deepRisk.textContent = "Analysis unavailable";
-  deepConfidence.textContent = "—";
-  deepReasons.replaceChildren();
-  deepReasons.textContent = error.message;
-  deepAction.textContent = "Check the connection and retry the analysis.";
-
-  const message = document.createElement("p");
-  message.className = "analysis-error-message";
-  message.textContent = error.message;
-  const heading = document.createElement("h2");
-  heading.className = "audio-report-heading";
-  heading.textContent = "GEMINI ANALYSIS REPORT";
-  result.append(heading);
-  result.append(message);
-
-  const retry = document.createElement("button");
-  retry.className = "retry-analysis";
-  retry.type = "button";
-  retry.textContent = "Try again";
-  retry.addEventListener("click", () => {
-    if (activeMode() === "phone") {
-      analyzePhoneTranscript();
-    } else {
-      form.requestSubmit();
-    }
-  });
-  result.append(retry);
+  const risk = mode === "phone" ? audioDeepRisk : deepRisk;
+  const confidence = mode === "phone" ? audioDeepConfidence : deepConfidence;
+  const reasons = mode === "phone" ? audioDeepReasons : deepReasons;
+  const action = mode === "phone" ? audioDeepAction : deepAction;
+  risk.textContent = "Analysis unavailable";
+  confidence.textContent = "—";
+  reasons.replaceChildren();
+  reasons.textContent = error.message;
+  action.textContent = "Check the connection and retry the analysis.";
+  if (mode === "phone") {
+    audioDeepScanStatus.textContent = `Audio analysis could not be completed: ${error.message}`;
+  }
 }
 
 function openModeChooser() {
@@ -420,6 +385,7 @@ function returnToSurface() {
   textPage.classList.remove("is-active");
   textPage.classList.remove("is-showing-results");
   audioPage.classList.remove("is-active");
+  audioPage.classList.remove("is-showing-results");
   orangeFish.removeAttribute("style");
   fishOrientation.removeAttribute("style");
   hook.removeAttribute("style");
@@ -440,6 +406,14 @@ function returnToSurface() {
 
 backButtons.forEach((button) => button.addEventListener("click", returnToSurface));
 document.querySelector("#back-to-input").addEventListener("click", returnToTextInput);
+document.querySelector("#audio-back-to-input").addEventListener("click", () => {
+  audioPage.classList.remove("is-showing-results");
+  window.scrollTo({
+    top: audioPage.getBoundingClientRect().top + window.scrollY,
+    behavior: "smooth",
+  });
+  audioContent.focus({ preventScroll: true });
+});
 
 function showAbout() {
   aboutDialog.hidden = false;
@@ -591,6 +565,11 @@ async function analyzePhoneTranscript() {
     return;
   }
   audioStatus.textContent = "Preparing the final Gemini report...";
+  audioDeepScanStatus.textContent = "The analysis is running. Your report will appear here.";
+  audioDeepRisk.textContent = "Analyzing";
+  audioDeepConfidence.textContent = "—";
+  audioDeepReasons.textContent = "The results will appear here when the scan is complete.";
+  audioDeepAction.textContent = "—";
   try {
     showResult(await requestAnalysis({ type: "phone", text: audioContent.value }));
     audioStatus.textContent = "Analysis complete. Your report is ready.";
@@ -598,7 +577,12 @@ async function analyzePhoneTranscript() {
     showAnalysisError(error);
     audioStatus.textContent = `Analysis could not be completed: ${error.message}`;
   }
-  scrollToElement(result);
+  audioPage.classList.add("is-showing-results");
+  scrollToElement(
+    audioResults,
+    "smooth",
+    Math.round(window.innerHeight * .12),
+  );
 }
 
 stopListeningButton.addEventListener("click", async () => {
@@ -624,7 +608,6 @@ form.addEventListener("submit", async (event) => {
 
   status.textContent = "";
   progressStatus.textContent = "The analysis is running. Your report will appear here.";
-  result.hidden = true;
   deepRisk.textContent = "Analyzing";
   deepConfidence.textContent = "—";
   deepReasons.textContent = "The results will appear here when the scan is complete.";

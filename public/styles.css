@@ -1358,7 +1358,9 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 }
 
 .text-page.is-showing-results > .back-to-surface,
-.text-page.is-showing-results > .about-trigger {
+.text-page.is-showing-results > .about-trigger,
+.audio-page.is-showing-results > .back-to-surface,
+.audio-page.is-showing-results > .about-trigger {
   display: none;
 }
 

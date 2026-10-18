@@ -192,7 +192,17 @@
             </div>
           </div>
           <p id="audio-status" class="analysis-status" role="status" aria-live="polite"></p>
-          <section id="result" class="analysis-result" hidden aria-live="polite"></section>
+          <section id="audio-deepen-bottom" class="text-deepen-bottom" aria-labelledby="audio-deepen-title">
+            <h2 id="audio-deepen-title">RESULTS</h2>
+            <dl class="deep-result-card" tabindex="0" aria-label="Audio phishing scan results">
+              <div><dt>Risk:</dt><dd id="audio-deep-risk">Awaiting analysis</dd></div>
+              <div><dt>Confidence:</dt><dd id="audio-deep-confidence">—</dd></div>
+              <div class="deep-reasons"><dt>Reasons:</dt><dd id="audio-deep-reasons">Run a scan to see the results</dd></div>
+              <div class="deep-action"><dt>Recommended action:</dt><dd id="audio-deep-action">—</dd></div>
+            </dl>
+            <p id="audio-deep-scan-status" class="deep-scan-status visually-hidden" role="status" aria-live="polite"></p>
+            <button id="audio-back-to-input" class="result-back-button" type="button">BACK TO INPUT</button>
+          </section>
         </section>
       </form>
     </main>
