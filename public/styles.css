@@ -1119,7 +1119,11 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 .surface-page.is-submerging .scene-background { transform: scale(1.2); transition: transform 1500ms cubic-bezier(.68, 0, .32, 1); }
 .scene-background { transform-origin: 50% 58%; }
 
-.surface-page .about-trigger { top: 3.2%; right: 7.4%; }
+.surface-page .about-trigger {
+  top: 3.2%;
+  right: 7.4%;
+  font-size: clamp(16px, 1.8vw, 21px);
+}
 .about-trigger { color: #d9952f; }
 .terminal-page .about-trigger { top: 20px; right: 22px; }
 
