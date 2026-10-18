@@ -305,15 +305,12 @@ function openModeChooser() {
     orangeFish.style.left = `${targetLeft}px`;
     await wait(700);
     surface.classList.add("is-snared");
-    const textButtonRect = document.querySelector("#text-mode-button").getBoundingClientRect();
-    const choiceCenter = textButtonRect.top + window.scrollY + textButtonRect.height / 2;
     const surfaceBottom =
       surface.getBoundingClientRect().top + window.scrollY
         + surface.getBoundingClientRect().height - window.innerHeight;
     const landingBottom = Math.max(
       0,
       Math.min(
-        choiceCenter - window.innerHeight / 2,
         surfaceBottom,
         document.documentElement.scrollHeight - window.innerHeight,
       ),

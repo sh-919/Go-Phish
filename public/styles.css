@@ -993,7 +993,6 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 .fish-right-bottom { --fish-top: 83%; --fish-right: 20%; --fish-bottom: 7%; --fish-left: 65%; --swim-duration: 6.8s; --swim-delay: -2s; }
 .fish-center-bottom { --fish-top: 89%; --fish-right: 37%; --fish-bottom: 3%; --fish-left: 49%; --swim-duration: 5.9s; --swim-delay: -.9s; }
 
-.art-bubbles { top: 69%; left: 17%; width: 66%; height: 17%; animation: bubbles-rise 8s ease-in-out infinite; }
 .art-seafloor { right: 0; bottom: 0; left: 0; width: 100%; height: 24.95%; }
 .art-hook {
   top: 27.5%;
@@ -1093,7 +1092,7 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
   top: 58%;
   left: 50%;
   display: block;
-  width: clamp(220px, 16.5vw, 250px);
+  width: clamp(220px, 17.5vw, 275px);
   height: clamp(82px, 6vw, 108px);
   image-rendering: pixelated;
   pointer-events: none;
@@ -1138,11 +1137,6 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 @keyframes wave-drift {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(.3cqw); }
-}
-
-@keyframes bubbles-rise {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-.5cqw); }
 }
 
 @keyframes button-bob {
@@ -1703,7 +1697,7 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 }
 
 .terminal-page:not(.is-active) {
-  visibility: hidden;
+  display: none;
 }
 
 .terminal-page.is-transitioning-out {
