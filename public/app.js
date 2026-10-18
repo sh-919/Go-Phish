@@ -22,6 +22,7 @@ const orangeFish = document.querySelector("#orange-fish-swimmer");
 const hook = document.querySelector("#metal-hook");
 const scene = document.querySelector(".surface-artboard");
 const fishOrientation = document.querySelector("#fish-orientation");
+const fishFacing = document.querySelector(".fish-facing");
 const modeButtons = document.querySelectorAll(".mode-button");
 const backButtons = document.querySelectorAll(".back-to-surface");
 const aboutDialog = document.querySelector("#about");
@@ -288,15 +289,20 @@ function openModeChooser() {
   const hookTop = buttonRect.bottom - sceneRect.top;
   const targetHeadX = sceneRect.width / 2;
   const targetHeadY = swimmerRect.top - sceneRect.top + swimmerRect.height / 2;
-  const targetLeft = targetHeadX - swimmerRect.width * .86;
+  const fishFacesRight = new DOMMatrixReadOnly(getComputedStyle(fishFacing).transform).a > 0;
+  const fishHeadOffset = fishFacesRight ? .86 : .14;
+  const targetLeft = targetHeadX - swimmerRect.width * fishHeadOffset;
   const hookLeft = targetHeadX - hook.offsetWidth * .84;
   const hookScale = Math.max(1, (targetHeadY - hookTop) / hookHeight);
+  const fishFacingTransform = getComputedStyle(fishFacing).transform;
 
   orangeFish.style.animation = "none";
   orangeFish.style.transform = "none";
   orangeFish.style.left = `${swimmerRect.left - sceneRect.left}px`;
   orangeFish.style.transition = "left 450ms ease";
-  fishOrientation.style.transformOrigin = "86% 50%";
+  fishFacing.style.animation = "none";
+  fishFacing.style.transform = fishFacingTransform;
+  fishOrientation.style.transformOrigin = `${fishHeadOffset * 100}% 50%`;
   hook.style.top = `${hookTop}px`;
   hook.style.left = `${hookLeft}px`;
   hook.style.setProperty("--hook-target-scale", String(hookScale));
@@ -386,6 +392,7 @@ function returnToSurface() {
   audioPage.classList.remove("is-showing-results");
   orangeFish.removeAttribute("style");
   fishOrientation.removeAttribute("style");
+  fishFacing.removeAttribute("style");
   hook.removeAttribute("style");
   document.querySelectorAll(".mode-button, #phish-button").forEach((button) => {
     button.disabled = button.classList.contains("mode-button");
