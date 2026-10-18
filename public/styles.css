@@ -1300,7 +1300,7 @@ html.dashboard-locked::-webkit-scrollbar { display: none; }
 
 .text-entry-card .terminal-label {
   position: absolute;
-  top: 5%;
+  top: clamp(10px, 1.1vw, 16px);
   left: 5%;
   font-size: clamp(9px, 1vw, 13px);
 }
