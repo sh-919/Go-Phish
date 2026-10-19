@@ -1,5 +1,4 @@
 # Go-Phish
-<img width="1377" height="695" alt="image" src="https://github.com/user-attachments/assets/e91c5b1e-6895-43ca-879a-61d68e2f013d" />
 
 A website that determines if an email, phone call, or email screenshot is a phishing scam.
 
@@ -8,6 +7,7 @@ The landing and underwater scenes use separately exported Figma art layers (sky,
 In **TEXT** mode, paste suspicious content or upload a PNG, JPEG, or WebP screenshot. Press `Ctrl+V` to paste an image directly. **RUN PHISH_NET** runs the Gemini analysis with an animated two-second-minimum scan, then scrolls to the inline results card.
 
 In **AUDIO** mode, choose **Start Listening** or the microphone and allow microphone access. The browser transcribes speech and updates an immediate local scam-likelihood estimate; Gemini refines the estimate periodically. Stop listening to scroll to the final inline Gemini report with reasons and recommended next steps. The app transcribes speech in the browser and does not record or upload raw audio.
+<img width="1377" height="695" alt="image" src="https://github.com/user-attachments/assets/e91c5b1e-6895-43ca-879a-61d68e2f013d" />
 
 ## Local setup
 
