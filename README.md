@@ -1,4 +1,6 @@
 # Go-Phish
+<img width="1377" height="695" alt="image" src="https://github.com/user-attachments/assets/e91c5b1e-6895-43ca-879a-61d68e2f013d" />
+
 A website that determines if an email, phone call, or email screenshot is a phishing scam.
 
 The landing and underwater scenes use separately exported Figma art layers (sky, ocean, fish, bubbles, and seabed) with real HTML controls layered above them; no full-screen screenshot is used as a background. The tall landing scene first shows **PHISH?**. Press it to run the hook-and-fish catch, then scroll down to the **TEXT** and **AUDIO** choices. Choosing a mode transitions into its dashboard. **BACK TO SURFACE** returns to the top of the landing scene, and **ABOUT US** opens the project information.
